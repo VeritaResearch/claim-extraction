@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-def eval(model, tokenizer, eval_dataset, verbose=False):
+def eval(model, tokenizer, eval_dataset, cuda=False, verbose=False):
     """
     Evaluate a model with an eval_dataset
     Eval_dataset should have two columns: prompt and completion
@@ -21,9 +21,14 @@ def eval(model, tokenizer, eval_dataset, verbose=False):
         )
         # The following reformatting line is necessary because continue_final_message doesn't work with empty messages
         chat_template_input_ids = chat_template_input_ids[0, :-1].reshape(1, -1)
-        
+
+        if cuda:
+            chat_template_input_ids = chat_template_input_ids.cuda()
+
         with torch.no_grad():
             logits = model(chat_template_input_ids, use_cache=True)["logits"]
+
+        del chat_template_input_ids
 
         next_token = torch.argmax(logits[0, -1]).item()
         next_token_text = tokenizer.convert_ids_to_tokens(next_token)

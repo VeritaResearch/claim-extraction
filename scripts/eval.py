@@ -19,4 +19,4 @@ if __name__ == "__main__":
 
     eval_dataset = prepare_eval_dataset(sample=10)
 
-    results_df = eval(model, tokenizer, eval_dataset, verbose=True)
+    results_df = eval(model, tokenizer, eval_dataset, cuda=False, verbose=True)
