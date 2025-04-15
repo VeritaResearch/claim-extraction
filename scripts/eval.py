@@ -8,17 +8,18 @@ sys.path.insert(0, PROJ_PATH)
 
 from src.utils import load_model, prepare_eval_dataset
 from src.eval import eval, ModernBERT_eval
+from transformers import AutoTokenizer
 
 cache_dir = "../assets/pretrained-models"
-model_path = "meta-llama/Llama-3.2-1B-Instruct"
+model_path = "../assets/finetuned-models/ModernBERT-claim-detection"
 
 if __name__ == "__main__":
-    model, tokenizer = load_model(
-        model_path=model_path, cache_dir=cache_dir, cuda=False
-    )
 
     if 'ModernBERT' in model_path:
-        results_df = ModernBERT_eval(model_path, tokenizer)
+        tokenizer = AutoTokenizer.from_pretrained("answerdotai/ModernBERT-base", cache_dir=cache_dir)
+        results_df = ModernBERT_eval(model_path, tokenizer,verbose=True)
     else:
+        model, tokenizer = load_model(model_path=model_path, cache_dir=cache_dir, cuda=False)
+
         eval_dataset = prepare_eval_dataset(sample=10)
         results_df = eval(model, tokenizer, eval_dataset, cuda=False, verbose=True)

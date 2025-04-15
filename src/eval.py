@@ -62,7 +62,7 @@ def ModernBERT_eval(full_model_path, tokenizer, data_path: str = "../data/Claimb
     Prompt should be in messages format
     """
     dataset = pd.read_json(data_path)
-    dataset['label_text'] = dataset['label'].apply(lambda x: 'Claim' if x == 1 else 'Not claim')
+    dataset['label_text'] = dataset['label'].apply(lambda x: 'Yes' if x == 1 else 'No')
     eval_dataset = dataset.to_dict(orient="records")
 
     if cuda:
@@ -79,16 +79,16 @@ def ModernBERT_eval(full_model_path, tokenizer, data_path: str = "../data/Claimb
 
     results_df = pd.DataFrame(columns=["claim", "label", "pred", "eval"])
     for i, eval_instance in enumerate(tqdm(eval_dataset)):
-        pred = classifier(eval_instance['claim'])[0]['label']
+        pred = classifier(eval_instance['text'])[0]['label']
 
         if verbose:
             print(f"DEBUG::i::{i} / {len(eval_dataset)}")
-            print("DEBUG::claim::", eval_instance["claim"])
+            print("DEBUG::claim::", eval_instance["text"])
             print("DEBUG::label::", eval_instance["label_text"])
             print("DEBUG::pred::", pred)
 
         r = {
-            "claim": eval_instance["claim"],
+            "claim": eval_instance["text"],
             "label": eval_instance["label_text"],
             "pred": pred,
             "eval": 1 if (pred in eval_instance['label_text']) else 0,
