@@ -11,7 +11,6 @@ from src.utils import load_model
 
 from transformers import (
     AutoTokenizer,
-    AutoModelForMaskedLM,
     ModernBertForSequenceClassification,
     Trainer,
     TrainingArguments,
@@ -27,8 +26,8 @@ cache_dir = "../assets/pretrained-models"
 model_path = "answerdotai/ModernBERT-base"
 output_dir = "../assets/finetuned-models/ModernBERT-claim-detection"
 
-id2label = {0: "No", 1: "Yes"}
-label2id = {"No": 0, "Yes": 1}
+id2label = {0: "Not claim", 1: "Claim"}
+label2id = {"Not claim": 0, "Claim": 1}
 
 model = ModernBertForSequenceClassification.from_pretrained(
     model_path, cache_dir=cache_dir, id2label=id2label, label2id=label2id
@@ -39,7 +38,7 @@ if cuda:
     model.to("cuda")
 
 def tokenize(batch):
-    return tokenizer(batch['text'], padding=True, truncation=True, return_tensors="pt")
+    return tokenizer(batch['text'], padding='True', truncation=True, return_tensors="pt")
 
 training_args = TrainingArguments(
     output_dir=output_dir,
@@ -62,11 +61,11 @@ def prepare_dataset():
     dataset = pd.read_json('../data/Claimbuster/train.json')
     dataset = dataset.filter(items=['text','label'])
     dataset = dataset.rename(columns={"label": "labels"})
-    
+
     dataset = dataset.sample(n=10,random_state=42)
 
     train_dataset = Dataset.from_pandas(dataset)
-    tokenized_dataset = train_dataset.map(tokenize, batched=True, remove_columns=["text"])
+    tokenized_dataset = train_dataset.map(tokenize, batched=True, batch_size=20000, remove_columns=["text"])
 
     return tokenized_dataset
 

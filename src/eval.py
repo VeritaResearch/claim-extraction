@@ -1,6 +1,7 @@
 import pandas as pd
 import torch
 from tqdm import tqdm
+from transformers import pipeline
 
 def eval(model, tokenizer, eval_dataset, cuda=False, verbose=False):
     """
@@ -44,6 +45,53 @@ def eval(model, tokenizer, eval_dataset, cuda=False, verbose=False):
             "completion": eval_instance["completion"],
             "pred": next_token_text,
             "eval": 1 if (next_token_text in eval_instance["completion"]) else 0,
+        }
+        results_df.loc[len(results_df)] = r
+
+    if verbose:
+        print("DEBUG::results::eval mean", results_df["eval"].mean())
+        print("DEBUG::resutls::pred value counts", results_df["pred"].value_counts())
+
+    return results_df
+
+
+def ModernBERT_eval(full_model_path, tokenizer, data_path: str = "../data/Claimbuster/test.json", cuda=False, verbose=False):
+    """
+    Evaluate a model with an eval_dataset
+    Eval_dataset should have two columns: prompt and completion
+    Prompt should be in messages format
+    """
+    dataset = pd.read_json(data_path)
+    dataset['label_text'] = dataset['label'].apply(lambda x: 'Claim' if x == 1 else 'Not claim')
+    eval_dataset = dataset.to_dict(orient="records")
+
+    if cuda:
+        device = 'cuda:1'
+    else:
+        device = 0
+
+    classifier = pipeline(
+        task="text-classification", 
+        model=full_model_path,
+        tokenizer=tokenizer,
+        device=device
+    )
+
+    results_df = pd.DataFrame(columns=["claim", "label", "pred", "eval"])
+    for i, eval_instance in enumerate(tqdm(eval_dataset)):
+        pred = classifier(eval_instance['claim'])[0]['label']
+
+        if verbose:
+            print(f"DEBUG::i::{i} / {len(eval_dataset)}")
+            print("DEBUG::claim::", eval_instance["claim"])
+            print("DEBUG::label::", eval_instance["label_text"])
+            print("DEBUG::pred::", pred)
+
+        r = {
+            "claim": eval_instance["claim"],
+            "label": eval_instance["label_text"],
+            "pred": pred,
+            "eval": 1 if (pred in eval_instance['label_text']) else 0,
         }
         results_df.loc[len(results_df)] = r
 

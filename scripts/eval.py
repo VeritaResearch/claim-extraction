@@ -7,7 +7,7 @@ PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
 from src.utils import load_model, prepare_eval_dataset
-from src.eval import eval
+from src.eval import eval, ModernBERT_eval
 
 cache_dir = "../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
@@ -17,6 +17,8 @@ if __name__ == "__main__":
         model_path=model_path, cache_dir=cache_dir, cuda=False
     )
 
-    eval_dataset = prepare_eval_dataset(sample=10)
-
-    results_df = eval(model, tokenizer, eval_dataset, cuda=False, verbose=True)
+    if 'ModernBERT' in model_path:
+        results_df = ModernBERT_eval(model_path, tokenizer)
+    else:
+        eval_dataset = prepare_eval_dataset(sample=10)
+        results_df = eval(model, tokenizer, eval_dataset, cuda=False, verbose=True)
