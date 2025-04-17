@@ -59,8 +59,6 @@ if __name__ == "__main__":
         }
         results_df.loc[len(results_df)] = r
 
-        break
-
     y_true = results_df['label']
     y_pred = results_df['pred']
 

@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     if SAVE_DATA:
         train_df.to_csv(join(SAVE_PATH, 'train.csv'), index=False)
-        train_df.to_csv(join(SAVE_PATH, 'test.csv'), index=False)
+        test_df.to_csv(join(SAVE_PATH, 'test.csv'), index=False)
 
 
 
