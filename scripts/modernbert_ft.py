@@ -13,11 +13,9 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-import torch
 import pandas as pd
 from datasets import Dataset
 import numpy as np
-from sklearn.metrics import f1_score
 
 cuda = True
 cache_dir = "../assets/pretrained-models"
