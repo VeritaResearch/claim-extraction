@@ -7,8 +7,6 @@ import sys
 PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
-from src.utils import load_model
-
 from transformers import (
     AutoTokenizer,
     ModernBertForSequenceClassification,
@@ -21,24 +19,11 @@ from datasets import Dataset
 import numpy as np
 from sklearn.metrics import f1_score
 
-cuda = False
+cuda = True
 cache_dir = "../assets/pretrained-models"
 model_path = "answerdotai/ModernBERT-base"
 output_dir = "../assets/finetuned-models/ModernBERT-claim-detection"
-
-id2label = {0: "Not claim", 1: "Claim"}
-label2id = {"Not claim": 0, "Claim": 1}
-
-model = ModernBertForSequenceClassification.from_pretrained(
-    model_path, cache_dir=cache_dir, id2label=id2label, label2id=label2id
-)
-tokenizer = AutoTokenizer.from_pretrained(model_path, cache_dir=cache_dir)
-
-if cuda:
-    model.to("cuda")
-
-def tokenize(batch):
-    return tokenizer(batch['text'], padding='True', truncation=True, return_tensors="pt")
+data_path = "../data/ours/train.csv"
 
 training_args = TrainingArguments(
     output_dir=output_dir,
@@ -57,12 +42,13 @@ training_args = TrainingArguments(
     metric_for_best_model="f1",
 )
 
+def tokenize(batch):
+    return tokenizer(batch['text'], padding='True', truncation=True, return_tensors="pt")
+
 def prepare_dataset():
-    dataset = pd.read_json('../data/Claimbuster/train.json')
+    dataset = pd.read_csv(data_path)
     dataset = dataset.filter(items=['text','label'])
     dataset = dataset.rename(columns={"label": "labels"})
-
-    dataset = dataset.sample(n=10,random_state=42)
 
     train_dataset = Dataset.from_pandas(dataset)
     tokenized_dataset = train_dataset.map(tokenize, batched=True, batch_size=20000, remove_columns=["text"])
@@ -70,14 +56,23 @@ def prepare_dataset():
     return tokenized_dataset
 
 if __name__ == "__main__":
+    id2label, label2id = {0: "No", 1: "Yes"}, {"No": 0, "Yes": 1}
+    model = ModernBertForSequenceClassification.from_pretrained(
+        model_path, cache_dir=cache_dir, id2label=id2label, label2id=label2id
+    )
+    tokenizer = AutoTokenizer.from_pretrained(model_path, cache_dir=cache_dir)
+
+    if cuda:
+        model.to("cuda")
+
     print("DEBUG::preparing dataset")
-    train_dataset = prepare_dataset()
+    tokenized_train_dataset = prepare_dataset()
 
     print("DEBUG::instantiating trainer")
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=train_dataset,
+        train_dataset=tokenized_train_dataset,
     )
     print("DEBUG::starting training")
     trainer.train()
