@@ -4,6 +4,9 @@
 # Folder with language models
 assets/
 
+# Results folder
+results/
+
 # Local files
 git*.txt
 
