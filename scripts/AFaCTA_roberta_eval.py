@@ -13,16 +13,24 @@ import pandas as pd
 from tqdm import tqdm
 from sklearn.metrics import f1_score
 
-from src.prompts import FactcheckGPT_SYSTEM_PROPMT, CHECKWORTHY_PROMPT, SPECIFY_CHECKWORTHY_CATEGORY_PROMPT
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+from datasets import Dataset
 
 verbose = True
+cuda = False
 full_data_path = '../data/ours/test.csv'
-
-with open("creds.yaml") as f:
-    creds = yaml.load(f, Loader=yaml.FullLoader)
+cache_dir = "../assets/pretrained-models"
+model_path = "JingweiNi/roberta-base-afacta"
 
 if __name__ == "__main__":
-    client = OpenAI(api_key=creds["token"], organization=creds["org_key"])
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_path, cache_dir=cache_dir
+    )
+    tokenizer = AutoTokenizer.from_pretrained(model_path, cache_dir=cache_dir)
+    
+    if cuda:
+        model.to("cuda")
 
     eval_dataset = pd.read_csv(full_data_path)
     eval_dataset = eval_dataset.to_dict(orient="records")
@@ -31,20 +39,18 @@ if __name__ == "__main__":
 
     for i, eval_instance in enumerate(tqdm(eval_dataset)):
 
-        texts_formatted = '["' + eval_instance['text'] + '"]'
-        messages = [
-            {"role": "system", "content": FactcheckGPT_SYSTEM_PROPMT},
-            {"role": "user", "content": CHECKWORTHY_PROMPT.format(texts = texts_formatted)}
-        ]
+        inputs = tokenizer(eval_instance['text'], return_tensors="pt")
 
-        response = client.chat.completions.create(
-            messages=messages,
-            model="gpt-3.5-turbo",
-            temperature=0,
-            max_completion_tokens=10,
-        )
+        with torch.no_grad():  # Disable gradient tracking for inference
+            outputs = model(**inputs)
 
-        pred_str = response.choices[0].message.content
+        logits = outputs.logits
+        predicted_class_id = torch.argmax(logits, dim=1).item()
+        probs = torch.nn.functional.softmax(logits, dim=1)
+
+        model.config.id2label, model.config.label2id = {0: "No", 1: "Yes"}, {"No": 0, "Yes": 1}
+
+        pred_str = model.config.id2label[predicted_class_id]
 
         if verbose:
             print("DEBUG::text::", eval_instance['text'])
@@ -60,7 +66,7 @@ if __name__ == "__main__":
         results_df.loc[len(results_df)] = r
 
         if i % 100 == 0:
-            results_df.to_csv('../results/Factcheck_GPT-eval.csv',index=None)
+            results_df.to_csv('../results/AFaCTA_roberta_eval.csv',index=None)
 
     y_true = results_df['label']
     y_pred = results_df['pred']
