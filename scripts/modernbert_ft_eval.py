@@ -9,7 +9,6 @@ PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
 import yaml
-from openai import OpenAI
 import pandas as pd
 from tqdm import tqdm
 from sklearn.metrics import f1_score
@@ -29,7 +28,7 @@ if __name__ == "__main__":
     # load model from huggingface.co/models using our repository id
     classifier = pipeline(
         task="text-classification", 
-        model="../assets/finetuned-models/ModernBERT-claim-detection-2",
+        model="../assets/finetuned-models/ModernBERT-claim-detection",
         tokenizer=tokenizer,
     )
     

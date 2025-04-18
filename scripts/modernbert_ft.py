@@ -41,15 +41,16 @@ training_args = TrainingArguments(
 )
 
 def tokenize(batch):
-    return tokenizer(batch['text'], padding='max_length', truncation=True, return_tensors="pt")
+    return tokenizer(batch['text'], padding=True, truncation=True, return_tensors="pt")
 
 def prepare_dataset():
     dataset = pd.read_csv(data_path)
     dataset = dataset.filter(items=['text','label'])
     dataset = dataset.rename(columns={"label": "labels"})
+    dataset = dataset.dropna()
 
     train_dataset = Dataset.from_pandas(dataset)
-    tokenized_dataset = train_dataset.map(tokenize, batched=True, batch_size=20000, remove_columns=["text"])
+    tokenized_dataset = train_dataset.map(tokenize, batched=True, batch_size=(dataset.shape[0]+1), remove_columns=["text"])
 
     return tokenized_dataset
 
