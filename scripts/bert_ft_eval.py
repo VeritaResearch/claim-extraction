@@ -27,7 +27,7 @@ if __name__ == "__main__":
     # load model from huggingface.co/models using our repository id
     classifier = pipeline(
         task="text-classification", 
-        model="../assets/finetuned-models/google-bert/bert-base-uncased-claim-detection",
+        model="../assets/finetuned-models/bert-base-uncased-claim-detection",
         tokenizer=tokenizer,
     )
     
