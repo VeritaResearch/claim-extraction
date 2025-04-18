@@ -28,12 +28,12 @@ training_args = TrainingArguments(
     per_device_train_batch_size=32,
     per_device_eval_batch_size=16,
     learning_rate=5e-5,
-    num_train_epochs=2,
+    num_train_epochs=5,
     bf16=True, # bfloat16 training 
     optim="adamw_torch",
     # logging & evaluation strategies
     logging_strategy="steps",
-    logging_steps=10,
+    logging_steps=100,
     save_strategy="epoch",
     save_total_limit=2,
     #use_mps_device=True,
@@ -41,7 +41,7 @@ training_args = TrainingArguments(
 )
 
 def tokenize(batch):
-    return tokenizer(batch['text'], padding='True', truncation=True, return_tensors="pt")
+    return tokenizer(batch['text'], padding='max_length', truncation=True, return_tensors="pt")
 
 def prepare_dataset():
     dataset = pd.read_csv(data_path)
