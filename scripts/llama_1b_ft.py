@@ -9,6 +9,7 @@ sys.path.insert(0, PROJ_PATH)
 import pandas as pd
 from datasets import Dataset
 from trl import SFTConfig, SFTTrainer
+from peft import LoraConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.prompts import FactcheckGPT_SYSTEM_PROPMT, CHECKWORTHY_PROMPT, SPECIFY_CHECKWORTHY_CATEGORY_PROMPT
 
@@ -33,7 +34,6 @@ def prepare_dataset():
         axis=1,
     )
     dataset = dataset.filter(items=["messages"])
-
     train_dataset = Dataset.from_pandas(dataset)
     return train_dataset
 
@@ -46,6 +46,14 @@ training_args = SFTConfig(
     num_train_epochs=3,
     bf16=True,
     ) # bfloat16 training 
+
+peft_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
 
 if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
@@ -60,6 +68,10 @@ if __name__ == "__main__":
 
     train_dataset = prepare_dataset()
 
-    trainer = SFTTrainer(model=model, args=training_args, train_dataset=train_dataset)
+    trainer = SFTTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        peft_config=peft_config)
     trainer.train()
     trainer.save_model()
