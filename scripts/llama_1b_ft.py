@@ -12,7 +12,7 @@ from datasets import Dataset
 from trl import SFTConfig, SFTTrainer
 from peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from src.prompts import LLAMA_SYSTEM_PROPMT, LLAMA_CHECKWORTHY_PROMPT
+from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
 cuda = True
 cache_dir = "../assets/pretrained-models"
@@ -29,23 +29,27 @@ def prepare_dataset():
     )
     dataset["messages"] = dataset.apply(
         lambda row: [
-            {"role": "system", "content": LLAMA_SYSTEM_PROPMT},
-            {"role": "user", "content": LLAMA_CHECKWORTHY_PROMPT.format(texts = row['text'])}
+            {"role": "system", "content": LLAMA_SYSTEM_PROMPT},
+            {"role": "user", "content": LLAMA_CHECKWORTHY_PROMPT.format(texts = row['text'])},
+            {"role": "assistant", "content": row['label_yes_no']}
         ],
         axis=1,
     )
+
+    dataset = dataset.sample(n=100)
+    
     dataset = dataset.filter(items=["messages"])
     train_dataset = Dataset.from_pandas(dataset)
     return train_dataset
 
 training_args = SFTConfig(
     output_dir=output_dir,
-    logging_steps=10,
-    per_device_train_batch_size=1,
-    gradient_accumulation_steps=4,
+    logging_steps=100,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=16,
     torch_empty_cache_steps=4,
     learning_rate=5e-5,
-    num_train_epochs=1,
+    num_train_epochs=5,
     fp16=True,
     bf16=False,
     optim="paged_adamw_8bit",
@@ -119,5 +123,6 @@ if __name__ == "__main__":
         args=training_args,
         train_dataset=train_dataset,
         )
+    # Can check this here: https://github.com/unslothai/unsloth/issues/1802
     trainer.train()
     trainer.save_model()
