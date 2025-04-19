@@ -12,7 +12,7 @@ from datasets import Dataset
 from trl import SFTConfig, SFTTrainer
 from peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from src.prompts import FactcheckGPT_SYSTEM_PROPMT, CHECKWORTHY_PROMPT, SPECIFY_CHECKWORTHY_CATEGORY_PROMPT
+from src.prompts import LLAMA_SYSTEM_PROPMT, LLAMA_CHECKWORTHY_PROMPT
 
 cuda = True
 cache_dir = "../assets/pretrained-models"
@@ -29,8 +29,8 @@ def prepare_dataset():
     )
     dataset["messages"] = dataset.apply(
         lambda row: [
-            {"role": "system", "content": FactcheckGPT_SYSTEM_PROPMT},
-            {"role": "user", "content": CHECKWORTHY_PROMPT.format(texts = ('["' + row['text'] + '"]'))}
+            {"role": "system", "content": LLAMA_SYSTEM_PROPMT},
+            {"role": "user", "content": LLAMA_CHECKWORTHY_PROMPT.format(texts = row['text'])}
         ],
         axis=1,
     )
