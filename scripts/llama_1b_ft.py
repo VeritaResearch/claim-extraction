@@ -35,9 +35,7 @@ def prepare_dataset():
         ],
         axis=1,
     )
-
-    dataset = dataset.sample(n=100)
-    
+        
     dataset = dataset.filter(items=["messages"])
     train_dataset = Dataset.from_pandas(dataset)
     return train_dataset
