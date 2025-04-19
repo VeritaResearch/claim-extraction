@@ -16,7 +16,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
 verbose = True
-cuda = False
+cuda = True
 cache_dir = "../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
 output_dir="../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"

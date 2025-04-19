@@ -1,5 +1,16 @@
+LLAMA_SYSTEM_PROMPT = """
+Only answer with Yes or No
+"""
+
+LLAMA_CHECKWORTHY_PROMPT = """
+SENTENCE: {texts}
+
+Is the sentence a factual claim that could be verified by a factchecker? Yes or No
+"""
+
+
 # ------------------------------------------------------------------------
-# The following 2 prompts are from 
+# The following 3 prompts are from FactchectGPT
 # ------------------------------------------------------------------------
 
 FactcheckGPT_SYSTEM_PROPMT = """
