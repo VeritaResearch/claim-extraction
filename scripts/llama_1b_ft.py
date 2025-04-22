@@ -47,18 +47,18 @@ training_args = SFTConfig(
     gradient_accumulation_steps=16,
     torch_empty_cache_steps=4,
     learning_rate=5e-5,
-    num_train_epochs=5,
-    fp16=True,
-    bf16=False,
-    optim="paged_adamw_8bit",
+    num_train_epochs=30,
+    #fp16=True,
+    #bf16=False,
+    optim="adamw_torch",
     do_train=True,
     do_eval=False,
     gradient_checkpointing=True
     ) # bfloat16 training 
 
 lora_config = LoraConfig(
-    r=8,
-    lora_alpha=32,
+    r=16,
+    lora_alpha=16,
     lora_dropout=0.1,
     #bias="none",
     task_type="CAUSAL_LM",
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         model_path, cache_dir=cache_dir, use_safetensors=True
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_path, cache_dir=cache_dir, use_safetensors=True, quantization_config=bnb_config
+        model_path, cache_dir=cache_dir, use_safetensors=True, #quantization_config=bnb_config
     )
 
     if hasattr(model, "enable_input_require_grads"):
@@ -104,15 +104,15 @@ if __name__ == "__main__":
     total_parameters = 0
     for name, param in model.named_parameters():
         if 'lora' in name:
-            print(param.requires_grad)
+            # print(param.requires_grad)
             total_parameters += param.numel()
 
     print(f"Total lora parameters: {total_parameters}")
 
-    for name, param in model.named_parameters():
-        if 'lora' not in name:
-            print(f'Freezing non-LoRA parameter {name} | {param.requires_grad}')
-            param.requires_grad = False
+    #for name, param in model.named_parameters():
+    #    if 'lora' not in name:
+    #        print(f'Freezing non-LoRA parameter {name} | {param.requires_grad}')
+    #        param.requires_grad = False
 
     train_dataset = prepare_dataset()
 
