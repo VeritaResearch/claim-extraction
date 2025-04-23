@@ -15,7 +15,6 @@ from transformers import (
 )
 import pandas as pd
 from datasets import Dataset
-import numpy as np
 
 cuda = True
 cache_dir = "../assets/pretrained-models"
