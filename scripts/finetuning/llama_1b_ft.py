@@ -14,11 +14,11 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
-cuda = True
-cache_dir = "../assets/pretrained-models"
+cuda = torch.cuda.is_available()
+cache_dir = "../../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
-output_dir="../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"
-full_data_path = '../data/ours/train.csv'
+output_dir="../../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"
+full_data_path = "../../data/ours/train.csv"
 
 def prepare_dataset():
     dataset = pd.read_csv(full_data_path)
@@ -54,7 +54,7 @@ training_args = SFTConfig(
     do_train=True,
     do_eval=False,
     gradient_checkpointing=True
-    ) # bfloat16 training 
+    )
 
 lora_config = LoraConfig(
     r=16,
@@ -65,19 +65,13 @@ lora_config = LoraConfig(
     target_modules = ["q_proj", "k_proj", "v_proj"]
 )
 
-quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.float16,
-    )
-
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
+    load_in_8bit=False,
     bnb_4bit_use_double_quant=True,
     bnb_4bit_quant_type="nf4",
     bnb_4bit_compute_dtype=torch.bfloat16,
-    load_in_8bit=False
 )
-
 
 if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(

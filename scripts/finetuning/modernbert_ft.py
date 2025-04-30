@@ -16,11 +16,11 @@ from transformers import (
 import pandas as pd
 from datasets import Dataset
 
-cuda = True
-cache_dir = "../assets/pretrained-models"
+cuda = torch.cuda.is_available()
+cache_dir = "../../assets/pretrained-models"
 model_path = "answerdotai/ModernBERT-base"
-output_dir = "../assets/finetuned-models/ModernBERT-claim-detection"
-data_path = "../data/ours/train.csv"
+output_dir = "../../assets/finetuned-models/ModernBERT-claim-detection"
+data_path = "../../data/ours/train.csv"
 
 training_args = TrainingArguments(
     output_dir=output_dir,
