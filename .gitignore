@@ -10,6 +10,9 @@ assets/
 # Local files
 git*.txt
 
+# Server login
+scripts/sever_login.txt
+
 # Pytorch-lightning logs
 lightning_logs/
 
@@ -103,4 +106,4 @@ target/
 .mypy_cache/
 
 # Credentials
-scripts/creds.yaml
+scripts/eval/creds.yaml
