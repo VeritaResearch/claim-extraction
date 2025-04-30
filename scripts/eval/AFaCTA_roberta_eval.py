@@ -15,7 +15,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
 verbose = True
-cuda = False
+cuda = torch.cuda.is_available()
 full_data_path = "../../data/ours/test.csv"
 cache_dir = "../../assets/pretrained-models"
 model_path = "JingweiNi/roberta-base-afacta"
