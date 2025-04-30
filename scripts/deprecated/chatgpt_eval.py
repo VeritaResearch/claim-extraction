@@ -69,7 +69,6 @@ if __name__ == "__main__":
         pred = response.choices[0].message.content
         
         if verbose:
-            print(f"DEBUG::i::{i} / {len(eval_dataset)}")
             print("DEBUG::prompt::", eval_instance["messages"])
             print("DEBUG::completion::", eval_instance["completion"])
             print("DEBUG::pred::", pred)
