@@ -1,3 +1,4 @@
+from functools import cache
 import os
 from os.path import join, dirname, pardir
 from pickle import TRUE
@@ -7,22 +8,30 @@ import sys
 PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
-import yaml
-from openai import OpenAI
 import pandas as pd
 from tqdm import tqdm
 from sklearn.metrics import f1_score
 
-from src.prompts import FactcheckGPT_SYSTEM_PROPMT, CHECKWORTHY_PROMPT, SPECIFY_CHECKWORTHY_CATEGORY_PROMPT
+from transformers import AutoTokenizer, pipeline
+import torch
 
 verbose = True
-full_data_path = '../data/ours/test.csv'
-
-with open("creds.yaml") as f:
-    creds = yaml.load(f, Loader=yaml.FullLoader)
-
+cuda = False
+full_data_path = "../../data/ours/test.csv"
+cache_dir = "../../assets/finetuned-models"
+full_save_path = "../../results/google_bert_ft_eval.csv"
+ 
 if __name__ == "__main__":
-    client = OpenAI(api_key=creds["token"], organization=creds["org_key"])
+    tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased", cache_dir=cache_dir)
+    
+    classifier = pipeline(
+        task="text-classification", 
+        model="../assets/finetuned-models/bert-base-uncased-claim-detection",
+        tokenizer=tokenizer,
+    )
+    
+    if cuda:
+        classifier.to("cuda")
 
     eval_dataset = pd.read_csv(full_data_path)
     eval_dataset = eval_dataset.to_dict(orient="records")
@@ -31,20 +40,7 @@ if __name__ == "__main__":
 
     for i, eval_instance in enumerate(tqdm(eval_dataset)):
 
-        texts_formatted = '["' + eval_instance['text'] + '"]'
-        messages = [
-            {"role": "system", "content": FactcheckGPT_SYSTEM_PROPMT},
-            {"role": "user", "content": CHECKWORTHY_PROMPT.format(texts = texts_formatted)}
-        ]
-
-        response = client.chat.completions.create(
-            messages=messages,
-            model="gpt-3.5-turbo",
-            temperature=0,
-            max_completion_tokens=10,
-        )
-
-        pred_str = response.choices[0].message.content
+        pred_str = classifier(eval_instance['text'])[0]['label']
 
         if verbose:
             print("DEBUG::text::", eval_instance['text'])
@@ -60,12 +56,12 @@ if __name__ == "__main__":
         results_df.loc[len(results_df)] = r
 
         if i % 100 == 0:
-            results_df.to_csv('../results/Factcheck_GPT-eval.csv',index=None)
-
-    y_true = results_df['label']
-    y_pred = results_df['pred']
+            results_df.to_csv(full_save_path,index=None)
 
     if verbose:
+        y_true = results_df['label']
+        y_pred = results_df['pred']
+
         print("DEBUG::results::eval f1", f1_score(y_true,y_pred))
         print("DEBUG::resutls::pred value counts", results_df["pred"].value_counts())
 

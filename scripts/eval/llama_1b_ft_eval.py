@@ -16,11 +16,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
 verbose = True
-cuda = True
-cache_dir = "../assets/pretrained-models"
+cuda = False
+cache_dir = "../../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
-adapter_path="../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"
-full_data_path = '../data/ours/test.csv'
+adapter_path= "../../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"
+full_data_path = "../../data/ours/test.csv"
+full_save_path= "../results/llama_1b_ft_eval.csv"
 
 if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
@@ -58,9 +59,7 @@ if __name__ == "__main__":
             chat_template_input_ids = chat_template_input_ids.cuda()
 
         with torch.no_grad():
-            logits = model(chat_template_input_ids, use_cache=True)["logits"]
-
-        pred_str = tokenizer.batch_decode(model.generate(chat_template_input_ids, max_new_tokens = 10))[0].split("<|start_header_id|>assistant<|end_header_id|>")[1]
+            pred_str = tokenizer.batch_decode(model.generate(chat_template_input_ids, max_new_tokens = 10))[0].split("<|start_header_id|>assistant<|end_header_id|>")[1]
 
         del chat_template_input_ids
 
@@ -78,12 +77,12 @@ if __name__ == "__main__":
         results_df.loc[len(results_df)] = r
 
         if i % 100 == 0:
-            results_df.to_csv('../results/llama_1b_ft_eval.csv',index=None)
-
-    y_true = results_df['label']
-    y_pred = results_df['pred']
+            results_df.to_csv(full_save_path,index=None)
 
     if verbose:
+        y_true = results_df['label']
+        y_pred = results_df['pred']
+
         print("DEBUG::results::eval f1", f1_score(y_true,y_pred))
         print("DEBUG::resutls::pred value counts", results_df["pred"].value_counts())
 

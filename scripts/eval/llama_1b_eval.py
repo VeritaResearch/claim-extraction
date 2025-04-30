@@ -7,7 +7,6 @@ import sys
 PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
-import yaml
 import pandas as pd
 import torch
 from tqdm import tqdm
@@ -16,11 +15,11 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
 verbose = True
-cuda = True
-cache_dir = "../assets/pretrained-models"
+cuda = False
+cache_dir = "../../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
-output_dir="../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"
-full_data_path = '../data/ours/test.csv'
+full_data_path = "../../data/ours/test.csv"
+full_save_path="../results/llama_1b_eval.csv"
 
 if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
@@ -51,8 +50,6 @@ if __name__ == "__main__":
             add_generation_prompt=False,
             return_tensors="pt",
         )
-        # The following reformatting line is necessary because continue_final_message doesn't work with empty messages
-        #chat_template_input_ids = chat_template_input_ids[0, :-1].reshape(1, -1)
 
         if cuda:
             chat_template_input_ids = chat_template_input_ids.cuda()
@@ -78,12 +75,12 @@ if __name__ == "__main__":
         results_df.loc[len(results_df)] = r
 
         if i % 100 == 0:
-            results_df.to_csv('../results/llama_1b_eval.csv',index=None)
-
-    y_true = results_df['label']
-    y_pred = results_df['pred']
+            results_df.to_csv(full_save_path,index=None)
 
     if verbose:
+        y_true = results_df['label']
+        y_pred = results_df['pred']
+
         print("DEBUG::results::eval f1", f1_score(y_true,y_pred))
         print("DEBUG::resutls::pred value counts", results_df["pred"].value_counts())
 

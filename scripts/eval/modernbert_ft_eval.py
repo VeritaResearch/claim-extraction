@@ -8,7 +8,6 @@ import sys
 PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
-import yaml
 import pandas as pd
 from tqdm import tqdm
 from sklearn.metrics import f1_score
@@ -19,13 +18,14 @@ from datasets import Dataset
 
 verbose = True
 cuda = False
-full_data_path = '../data/ours/test.csv'
-cache_dir = "../assets/finetuned-models"
+full_data_path = "../../data/ours/test.csv"
+cache_dir = "../../assets/finetuned-models"
 model_path = "ModernBERT-claim-detection"
+full_save_path = "../results/modernbert_ft_eval.csv"
  
 if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("answerdotai/ModernBERT-base", cache_dir=cache_dir)
-    # load model from huggingface.co/models using our repository id
+    
     classifier = pipeline(
         task="text-classification", 
         model="../assets/finetuned-models/ModernBERT-claim-detection",
@@ -58,12 +58,12 @@ if __name__ == "__main__":
         results_df.loc[len(results_df)] = r
 
         if i % 100 == 0:
-            results_df.to_csv('../results/modernbert_ft_eval.csv',index=None)
-
-    y_true = results_df['label']
-    y_pred = results_df['pred']
+            results_df.to_csv(full_save_path,index=None)
 
     if verbose:
+        y_true = results_df['label']
+        y_pred = results_df['pred']
+
         print("DEBUG::results::eval f1", f1_score(y_true,y_pred))
         print("DEBUG::resutls::pred value counts", results_df["pred"].value_counts())
 
