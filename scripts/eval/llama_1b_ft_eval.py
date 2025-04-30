@@ -7,7 +7,6 @@ import sys
 PROJ_PATH = join(dirname(__file__), pardir)
 sys.path.insert(0, PROJ_PATH)
 
-import yaml
 import pandas as pd
 import torch
 from tqdm import tqdm
@@ -16,7 +15,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
 verbose = True
-cuda = False
+cuda = torch.cuda.is_available()
 cache_dir = "../../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
 adapter_path= "../../assets/finetuned-models/Llama-3.2-1B-Instruct-SFT"

@@ -49,3 +49,8 @@ Note that your response will be passed to the python interpreter, SO NO OTHER WO
 
 checkworthy("{sentence}")
 """
+
+# ------------------------------------------------------------------------
+# The following prompts are for Claimify
+# ------------------------------------------------------------------------
+

@@ -17,7 +17,7 @@ import torch
 from datasets import Dataset
 
 verbose = True
-cuda = False
+cuda = torch.cuda.is_available()
 full_data_path = "../../data/ours/test.csv"
 cache_dir = "../../assets/finetuned-models"
 model_path = "ModernBERT-claim-detection"

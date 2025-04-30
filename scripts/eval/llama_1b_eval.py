@@ -15,7 +15,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.prompts import LLAMA_SYSTEM_PROMPT, LLAMA_CHECKWORTHY_PROMPT
 
 verbose = True
-cuda = False
+cuda = torch.cuda.is_available()
 cache_dir = "../../assets/pretrained-models"
 model_path = "meta-llama/Llama-3.2-1B-Instruct"
 full_data_path = "../../data/ours/test.csv"
