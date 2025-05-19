@@ -107,3 +107,4 @@ target/
 
 # Credentials
 scripts/eval/creds.yaml
+scripts/transfer_eval/creds.yaml
