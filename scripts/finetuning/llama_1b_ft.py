@@ -54,7 +54,7 @@ training_args = SFTConfig(
     do_train=True,
     do_eval=False,
     gradient_checkpointing=True
-    )
+)
 
 lora_config = LoraConfig(
     r=16,
